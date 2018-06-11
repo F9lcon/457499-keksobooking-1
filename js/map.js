@@ -23,6 +23,14 @@ var features = [
   ' elevator',
   ' conditioner'
 ];
+
+var typesNames = {
+  flat: 'Квартира',
+  bungalo: 'Бунгало',
+  house: 'Дом',
+  palace: 'Дворец'
+};
+
 var mapElement = document.querySelector('.map');
 var templateElement = document.querySelector('template')
   .content;
@@ -31,12 +39,13 @@ var pinsListElement = document.querySelector('.map__pins');
 
 
 var getRandomValue = function (min, max) {
-  return Math.floor(Math.random() * (max - min) + min);
+  return Math.round(Math.random() * (max - min) + min);
 };
 
 var getFeatures = function () {
   var featureList = [];
-  for (var i = 0; i <= getRandomValue(0, 5); i++) {
+  var countFeature = getRandomValue(0, 5); /* а если так? одно вычисление за вызов функции  */
+  for (var i = 0; i <= countFeature; i++) {
     featureList.push(features[i]);
   }
   return featureList;
@@ -50,17 +59,14 @@ var getPhotoItems = function () {
   return photoItems;
 };
 
-var getType = function (card, place) {
-  if (place.offer.type === 'flat') {
-    card.querySelector('.popup__type').textContent = 'Квартира';
-  } else if (place.offer.type === 'bungalo') {
-    card.querySelector('.popup__type').textContent = 'Бунгало';
-  } else if (place.offer.type === 'house') {
-    card.querySelector('.popup__type').textContent = 'Дом';
-  } else if (place.offer.type === 'palace') {
-    card.querySelector('.popup__type').textContent = 'Дворец';
-  }
+var getLocation = function () { /* спустя два дня раздумий я додумался только до этого */
+  var locationXY = [];
+  locationXY.push(getRandomValue(300, 900));
+  locationXY.push(getRandomValue(130, 630));
+  return locationXY;
 };
+
+var locationXY = getLocation();
 
 var getSimilarItems = function () {
   var items = [];
@@ -71,7 +77,7 @@ var getSimilarItems = function () {
       },
       offer: {
         title: titles[i],
-        addres: getRandomValue(100, 800) + ', ' + getRandomValue(100, 400),
+        address: locationXY[0] + ', ' + locationXY[1],
         price: getRandomValue(1000, 1000000),
         type: types[getRandomValue(0, 3)],
         rooms: getRandomValue(1, 5),
@@ -83,8 +89,8 @@ var getSimilarItems = function () {
         photos: getPhotoItems()
       },
       location: {
-        x: getRandomValue(300, 900),
-        y: getRandomValue(130, 630)
+        x: locationXY[0],
+        y: locationXY[1]
       }
     };
   }
@@ -117,20 +123,24 @@ pushPins();
 var renderMap = function (item) {
   var itemElement = templateElement.querySelector('.map__card').cloneNode(true);
   itemElement.querySelector('.popup__title').textContent = item.offer.title;
-  itemElement.querySelector('.popup__text--address').textContent = item.offer.addres;
+  itemElement.querySelector('.popup__text--address').textContent = item.offer.address;
   itemElement.querySelector('.popup__text--price').textContent = item.offer.price + ' ₽/ночь';
   itemElement.querySelector('.popup__text--capacity').textContent = 'Заезд после '
     + item.offer.checkin + ', выезд до ' + item.offer.checkout;
-  itemElement.querySelector('.popup__type').textContent = getType(itemElement, item);
+  itemElement.querySelector('.popup__type').textContent = typesNames[item.offer.type];
   itemElement.querySelector('.popup__features').textContent = item.offer.features;
   itemElement.querySelector('.popup__description').textContent = item.offer.description;
   itemElement.querySelector('.popup__photos').removeChild(itemElement
     .querySelector('.popup__photo'));
 
-  for (var i = 0; i < 3; i++) { /* Есть ли смысл выносить этот цикл в отдельную функцию? */
-    itemElement.querySelector('.popup__photos').insertAdjacentHTML('afterbegin',
-        '<img src="" class="popup__photo" width="45" height="40" alt="Фотография жилья">');
-    itemElement.querySelector('.popup__photo').src = item.offer.photos[i];
+  for (var i = 0; i < 3; i++) {
+    var photoElement = document.createElement('img');
+    photoElement.src = item.offer.photos[i];
+    photoElement.classList.add('popup__photo');
+    photoElement.width = 45;
+    photoElement.height = 40;
+    photoElement.alt = 'Фотография жилья';
+    itemElement.querySelector('.popup__photos').insertBefore(photoElement, null);
   }
   return itemElement;
 };
