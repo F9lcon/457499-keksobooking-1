@@ -17,11 +17,11 @@ var types = ['palace', 'flat', 'house', 'bungalo'];
 var checkTimes = ['12:00', '13:00', '14:00'];
 var features = [
   'wifi',
-  ' dishwasher',
-  ' parking',
-  ' washer',
-  ' elevator',
-  ' conditioner'
+  'dishwasher',
+  'parking',
+  'washer',
+  'elevator',
+  'conditioner'
 ];
 
 var typesNames = {
@@ -37,17 +37,14 @@ var templateElement = document.querySelector('template')
 var filterContainerElement = document.querySelector('.map__filters-container');
 var pinsListElement = document.querySelector('.map__pins');
 
-
 var getRandomValue = function (min, max) {
-  return Math.round(Math.random() * (max - min) + min);
+  return Math.floor(Math.random() * (max - min + 1) + min);
 };
 
 var getFeatures = function () {
   var featureList = [];
-  var countFeature = getRandomValue(0, 5); /* а если так? одно вычисление за вызов функции  */
-  for (var i = 0; i <= countFeature; i++) {
-    featureList.push(features[i]);
-  }
+  var countFeature = getRandomValue(0, 5);
+  featureList = features.slice(0, countFeature + 1);
   return featureList;
 };
 
@@ -59,18 +56,17 @@ var getPhotoItems = function () {
   return photoItems;
 };
 
-var getLocation = function () { /* спустя два дня раздумий я додумался только до этого */
+var getLocation = function () {
   var locationXY = [];
   locationXY.push(getRandomValue(300, 900));
   locationXY.push(getRandomValue(130, 630));
   return locationXY;
 };
 
-var locationXY = getLocation();
-
 var getSimilarItems = function () {
   var items = [];
   for (var i = 0; i < 8; i++) {
+    var locationXY = getLocation();
     items[i] = {
       author: {
         avatar: 'img/avatars/user0' + (i + 1) + '.png'
@@ -122,13 +118,13 @@ pushPins();
 
 var renderMap = function (item) {
   var itemElement = templateElement.querySelector('.map__card').cloneNode(true);
+  var featuresListElement = itemElement.querySelector('.popup__features');
   itemElement.querySelector('.popup__title').textContent = item.offer.title;
   itemElement.querySelector('.popup__text--address').textContent = item.offer.address;
   itemElement.querySelector('.popup__text--price').textContent = item.offer.price + ' ₽/ночь';
   itemElement.querySelector('.popup__text--capacity').textContent = 'Заезд после '
     + item.offer.checkin + ', выезд до ' + item.offer.checkout;
   itemElement.querySelector('.popup__type').textContent = typesNames[item.offer.type];
-  itemElement.querySelector('.popup__features').textContent = item.offer.features;
   itemElement.querySelector('.popup__description').textContent = item.offer.description;
   itemElement.querySelector('.popup__photos').removeChild(itemElement
     .querySelector('.popup__photo'));
@@ -141,6 +137,17 @@ var renderMap = function (item) {
     photoElement.height = 40;
     photoElement.alt = 'Фотография жилья';
     itemElement.querySelector('.popup__photos').insertBefore(photoElement, null);
+  }
+
+  while (featuresListElement.firstChild) { /* опять таки не очень уверен в таком решении. но что то ничего умнее не придумал */
+    featuresListElement.removeChild(featuresListElement.firstChild);
+  }
+
+  for (var j = 0; j < item.offer.features.length; j++) {
+    var featureElement = document.createElement('li');
+    featureElement.classList.add('popup__feature');
+    featureElement.classList.add('popup__feature--' + item.offer.features[j]);
+    featuresListElement.insertBefore(featureElement, null);
   }
   return itemElement;
 };
