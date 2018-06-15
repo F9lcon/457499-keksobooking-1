@@ -2,6 +2,9 @@
 
 var PIN_WIDTH = 40;
 var PIN_HEIGHT = 40;
+var MAIN_PIN_WIDTH = 40;
+var MAIN_PIN_HEIGHT = 44;
+var POINTER_PIN_HEIGHT = 22;
 
 var titles = [
   'Большая уютная квартира',
@@ -36,6 +39,10 @@ var templateElement = document.querySelector('template')
   .content;
 var filterContainerElement = document.querySelector('.map__filters-container');
 var pinsListElement = document.querySelector('.map__pins');
+var formElement = document.querySelector('.ad-form');
+var fieldsetElements = formElement.querySelectorAll('fieldset');
+var pinMainElement = document.querySelector('.map__pin--main');
+var inputAddressElement = formElement.querySelector('#address');
 
 var getRandomValue = function (min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
@@ -95,8 +102,6 @@ var getSimilarItems = function () {
 
 var similarItems = getSimilarItems();
 
-document.querySelector('.map').classList.remove('map--faded');
-
 var renderSimilarPins = function (item) {
   var pinElement = templateElement.querySelector('.map__pin').cloneNode(true);
   pinElement.style.left = item.location.x - PIN_WIDTH / 2 + 'px';
@@ -113,8 +118,6 @@ var pushPins = function () {
   }
   pinsListElement.appendChild(fragment);
 };
-
-pushPins();
 
 var renderMap = function (item) {
   var itemElement = templateElement.querySelector('.map__card').cloneNode(true);
@@ -139,7 +142,7 @@ var renderMap = function (item) {
     itemElement.querySelector('.popup__photos').insertBefore(photoElement, null);
   }
 
-  while (featuresListElement.firstChild) { /* опять таки не очень уверен в таком решении. но что то ничего умнее не придумал */
+  while (featuresListElement.firstChild) {
     featuresListElement.removeChild(featuresListElement.firstChild);
   }
 
@@ -152,12 +155,46 @@ var renderMap = function (item) {
   return itemElement;
 };
 
-var pushMap = function () {
+var pushMap = function (item) {
   var fragment = document.createDocumentFragment();
   for (var i = 0; i < 1; i++) {
-    fragment.appendChild(renderMap(similarItems[i]));
+    fragment.appendChild(renderMap(item));
   }
   mapElement.insertBefore(fragment, filterContainerElement);
 };
 
-pushMap();
+var getInactivePage = function () {
+  for (var i = 0; i < fieldsetElements.length; i++) {
+    fieldsetElements[i].disabled = true;
+  }
+  inputAddressElement.value = (pinMainElement.offsetLeft + MAIN_PIN_WIDTH / 2)
+    + ', ' + (pinMainElement.offsetTop - MAIN_PIN_HEIGHT / 2);
+};
+
+getInactivePage();
+
+var getActivePage = function () {
+  mapElement.classList.remove('map--faded');
+  formElement.classList.remove('ad-form--disabled');
+  for (var i = 0; i < fieldsetElements.length; i++) {
+    fieldsetElements[i].disabled = false;
+  }
+  inputAddressElement.value = (pinMainElement.offsetLeft + MAIN_PIN_WIDTH / 2)
+    + ', ' + (pinMainElement.offsetTop + POINTER_PIN_HEIGHT);
+  pinMainElement.removeEventListener('mouseup', onPinMainElementMouseup);
+  pushPins();
+
+  var renderedPinsElements = pinsListElement.querySelectorAll('.map__pin');
+  for (var j = 1; j < renderedPinsElements.length; j++) {
+    renderedPinsElements[j].addEventListener('click', function () {
+      j -= 1;
+      pushMap(similarItems[j]);
+      });
+  }
+};
+
+var onPinMainElementMouseup = function () {
+  getActivePage();
+};
+
+pinMainElement.addEventListener('mouseup', onPinMainElementMouseup);
