@@ -1,10 +1,12 @@
 'use strict';
 
+
 var PIN_WIDTH = 40;
 var PIN_HEIGHT = 40;
 var MAIN_PIN_WIDTH = 40;
 var MAIN_PIN_HEIGHT = 44;
 var POINTER_PIN_HEIGHT = 22;
+var ESC_KEYCODE = 27;
 
 var titles = [
   'Большая уютная квартира',
@@ -102,24 +104,26 @@ var getSimilarItems = function () {
 
 var similarItems = getSimilarItems();
 
-var renderSimilarPins = function (item) {
+var renderSimilarPins = function (item, i) {
   var pinElement = templateElement.querySelector('.map__pin').cloneNode(true);
   pinElement.style.left = item.location.x - PIN_WIDTH / 2 + 'px';
   pinElement.style.top = item.location.y - PIN_HEIGHT + 'px';
   pinElement.querySelector('img').src = item.author.avatar;
   pinElement.querySelector('img').alt = item.offer.title;
+  pinElement.dataset.index = i;
+  pinElement.children[0].dataset.index = i;
   return pinElement;
 };
 
 var pushPins = function () {
   var fragment = document.createDocumentFragment();
   for (var i = 0; i < similarItems.length; i++) {
-    fragment.appendChild(renderSimilarPins(similarItems[i]));
+    fragment.appendChild(renderSimilarPins(similarItems[i], i));
   }
   pinsListElement.appendChild(fragment);
 };
 
-var renderMap = function (item) {
+var renderCard = function (item) {
   var itemElement = templateElement.querySelector('.map__card').cloneNode(true);
   var featuresListElement = itemElement.querySelector('.popup__features');
   itemElement.querySelector('.popup__title').textContent = item.offer.title;
@@ -155,12 +159,14 @@ var renderMap = function (item) {
   return itemElement;
 };
 
-var pushMap = function (item) {
+var pushCard = function (item) {
   var fragment = document.createDocumentFragment();
-  for (var i = 0; i < 1; i++) {
-    fragment.appendChild(renderMap(item));
+  fragment.appendChild(renderCard(item));
+  if (mapElement.querySelector('.map__card')) {
+    mapElement.replaceChild(fragment, mapElement.querySelector('.map__card'));
+  } else {
+    mapElement.insertBefore(fragment, filterContainerElement);
   }
-  mapElement.insertBefore(fragment, filterContainerElement);
 };
 
 var getInactivePage = function () {
@@ -183,13 +189,18 @@ var getActivePage = function () {
     + ', ' + (pinMainElement.offsetTop + POINTER_PIN_HEIGHT);
   pinMainElement.removeEventListener('mouseup', onPinMainElementMouseup);
   pushPins();
+  pinsListElement.addEventListener('click', onPinsElementClick);
 
-  var renderedPinsElements = pinsListElement.querySelectorAll('.map__pin');
-  for (var j = 1; j < renderedPinsElements.length; j++) {
-    renderedPinsElements[j].addEventListener('click', function () {
-      j -= 1;
-      pushMap(similarItems[j]);
-      });
+};
+
+var onPinsElementClick = function (evt) {
+  if (evt.target.dataset.index) {
+    var currentIndex = evt.target.dataset.index;
+    pushCard(similarItems[currentIndex]);
+  }
+  if (document.querySelector('.popup__close')) { /* при загрузке кода в консоли выдает ошибку что не может найти popup__close если нет проверки. как то криво, но лучше решения не нашел */
+    document.querySelector('.popup__close').addEventListener('click', onCloseButtonClick);
+    document.addEventListener('keydown', onCloseButtonPressEsc);
   }
 };
 
@@ -198,3 +209,19 @@ var onPinMainElementMouseup = function () {
 };
 
 pinMainElement.addEventListener('mouseup', onPinMainElementMouseup);
+
+
+var closePopup = function () {
+  mapElement.removeChild(mapElement.querySelector('.map__card'));
+  document.removeEventListener('keydown', onCloseButtonPressEsc);
+};
+
+var onCloseButtonClick = function () {
+  closePopup();
+};
+
+var onCloseButtonPressEsc = function (evt) {
+  if (evt.keyCode === ESC_KEYCODE) {
+    closePopup();
+  }
+};
