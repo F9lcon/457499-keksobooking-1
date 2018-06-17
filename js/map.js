@@ -169,7 +169,7 @@ var pushCard = function (item) {
   }
 };
 
-var getInactivePage = function () {
+var deactivatePage = function () {
   for (var i = 0; i < fieldsetElements.length; i++) {
     fieldsetElements[i].disabled = true;
   }
@@ -177,20 +177,23 @@ var getInactivePage = function () {
     + ', ' + (pinMainElement.offsetTop - MAIN_PIN_HEIGHT / 2);
 };
 
-getInactivePage();
+deactivatePage();
 
-var getActivePage = function () {
+var setAddress = function () {
+  inputAddressElement.value = (pinMainElement.offsetLeft + MAIN_PIN_WIDTH / 2)
+    + ', ' + (pinMainElement.offsetTop + POINTER_PIN_HEIGHT);
+};
+
+var activatePage = function () {
   mapElement.classList.remove('map--faded');
   formElement.classList.remove('ad-form--disabled');
   for (var i = 0; i < fieldsetElements.length; i++) {
     fieldsetElements[i].disabled = false;
   }
-  inputAddressElement.value = (pinMainElement.offsetLeft + MAIN_PIN_WIDTH / 2)
-    + ', ' + (pinMainElement.offsetTop + POINTER_PIN_HEIGHT);
+  setAddress();
   pinMainElement.removeEventListener('mouseup', onPinMainElementMouseup);
   pushPins();
   pinsListElement.addEventListener('click', onPinsElementClick);
-
 };
 
 var onPinsElementClick = function (evt) {
@@ -198,14 +201,14 @@ var onPinsElementClick = function (evt) {
     var currentIndex = evt.target.dataset.index;
     pushCard(similarItems[currentIndex]);
   }
-  if (document.querySelector('.popup__close')) { /* при загрузке кода в консоли выдает ошибку что не может найти popup__close если нет проверки. как то криво, но лучше решения не нашел */
+  if (document.querySelector('.popup__close')) {
     document.querySelector('.popup__close').addEventListener('click', onCloseButtonClick);
     document.addEventListener('keydown', onCloseButtonPressEsc);
   }
 };
 
 var onPinMainElementMouseup = function () {
-  getActivePage();
+  activatePage();
 };
 
 pinMainElement.addEventListener('mouseup', onPinMainElementMouseup);
