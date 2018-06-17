@@ -1,7 +1,12 @@
 'use strict';
 
+
 var PIN_WIDTH = 40;
 var PIN_HEIGHT = 40;
+var MAIN_PIN_WIDTH = 40;
+var MAIN_PIN_HEIGHT = 44;
+var POINTER_PIN_HEIGHT = 22;
+var ESC_KEYCODE = 27;
 
 var titles = [
   'Большая уютная квартира',
@@ -36,6 +41,10 @@ var templateElement = document.querySelector('template')
   .content;
 var filterContainerElement = document.querySelector('.map__filters-container');
 var pinsListElement = document.querySelector('.map__pins');
+var formElement = document.querySelector('.ad-form');
+var fieldsetElements = formElement.querySelectorAll('fieldset');
+var pinMainElement = document.querySelector('.map__pin--main');
+var inputAddressElement = formElement.querySelector('#address');
 
 var getRandomValue = function (min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
@@ -95,28 +104,26 @@ var getSimilarItems = function () {
 
 var similarItems = getSimilarItems();
 
-document.querySelector('.map').classList.remove('map--faded');
-
-var renderSimilarPins = function (item) {
+var renderSimilarPins = function (item, i) {
   var pinElement = templateElement.querySelector('.map__pin').cloneNode(true);
   pinElement.style.left = item.location.x - PIN_WIDTH / 2 + 'px';
   pinElement.style.top = item.location.y - PIN_HEIGHT + 'px';
   pinElement.querySelector('img').src = item.author.avatar;
   pinElement.querySelector('img').alt = item.offer.title;
+  pinElement.dataset.index = i;
+  pinElement.children[0].dataset.index = i;
   return pinElement;
 };
 
 var pushPins = function () {
   var fragment = document.createDocumentFragment();
   for (var i = 0; i < similarItems.length; i++) {
-    fragment.appendChild(renderSimilarPins(similarItems[i]));
+    fragment.appendChild(renderSimilarPins(similarItems[i], i));
   }
   pinsListElement.appendChild(fragment);
 };
 
-pushPins();
-
-var renderMap = function (item) {
+var renderCard = function (item) {
   var itemElement = templateElement.querySelector('.map__card').cloneNode(true);
   var featuresListElement = itemElement.querySelector('.popup__features');
   itemElement.querySelector('.popup__title').textContent = item.offer.title;
@@ -139,7 +146,7 @@ var renderMap = function (item) {
     itemElement.querySelector('.popup__photos').insertBefore(photoElement, null);
   }
 
-  while (featuresListElement.firstChild) { /* опять таки не очень уверен в таком решении. но что то ничего умнее не придумал */
+  while (featuresListElement.firstChild) {
     featuresListElement.removeChild(featuresListElement.firstChild);
   }
 
@@ -152,12 +159,72 @@ var renderMap = function (item) {
   return itemElement;
 };
 
-var pushMap = function () {
+var pushCard = function (item) {
   var fragment = document.createDocumentFragment();
-  for (var i = 0; i < 1; i++) {
-    fragment.appendChild(renderMap(similarItems[i]));
+  fragment.appendChild(renderCard(item));
+  if (mapElement.querySelector('.map__card')) {
+    mapElement.replaceChild(fragment, mapElement.querySelector('.map__card'));
+  } else {
+    mapElement.insertBefore(fragment, filterContainerElement);
   }
-  mapElement.insertBefore(fragment, filterContainerElement);
 };
 
-pushMap();
+var deactivatePage = function () {
+  for (var i = 0; i < fieldsetElements.length; i++) {
+    fieldsetElements[i].disabled = true;
+  }
+  inputAddressElement.value = (pinMainElement.offsetLeft + MAIN_PIN_WIDTH / 2)
+    + ', ' + (pinMainElement.offsetTop - MAIN_PIN_HEIGHT / 2);
+};
+
+deactivatePage();
+
+var setAddress = function () {
+  inputAddressElement.value = (pinMainElement.offsetLeft + MAIN_PIN_WIDTH / 2)
+    + ', ' + (pinMainElement.offsetTop + POINTER_PIN_HEIGHT);
+};
+
+var activatePage = function () {
+  mapElement.classList.remove('map--faded');
+  formElement.classList.remove('ad-form--disabled');
+  for (var i = 0; i < fieldsetElements.length; i++) {
+    fieldsetElements[i].disabled = false;
+  }
+  setAddress();
+  pinMainElement.removeEventListener('mouseup', onPinMainElementMouseup);
+  pushPins();
+  pinsListElement.addEventListener('click', onPinsElementClick);
+};
+
+var onPinsElementClick = function (evt) {
+  if (evt.target.dataset.index) {
+    var currentIndex = evt.target.dataset.index;
+    pushCard(similarItems[currentIndex]);
+  }
+  if (document.querySelector('.popup__close')) {
+    document.querySelector('.popup__close').addEventListener('click', onCloseButtonClick);
+    document.addEventListener('keydown', onCloseButtonPressEsc);
+  }
+};
+
+var onPinMainElementMouseup = function () {
+  activatePage();
+};
+
+pinMainElement.addEventListener('mouseup', onPinMainElementMouseup);
+
+
+var closePopup = function () {
+  mapElement.removeChild(mapElement.querySelector('.map__card'));
+  document.removeEventListener('keydown', onCloseButtonPressEsc);
+};
+
+var onCloseButtonClick = function () {
+  closePopup();
+};
+
+var onCloseButtonPressEsc = function (evt) {
+  if (evt.keyCode === ESC_KEYCODE) {
+    closePopup();
+  }
+};
