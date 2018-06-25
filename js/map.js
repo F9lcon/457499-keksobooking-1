@@ -173,7 +173,7 @@ var pushCard = function (item) {
 var deactivatePage = function () {
   for (var i = 0; i < fieldsetElements.length; i++) {
     fieldsetElements[i].disabled = true;
-  };
+  }
 
   inputAddressElement.value = (pinMainElement.offsetLeft + MAIN_PIN_WIDTH / 2)
     + ', ' + (pinMainElement.offsetTop - MAIN_PIN_HEIGHT / 2);
@@ -196,7 +196,7 @@ var activatePage = function () {
   pinMainElement.removeEventListener('mouseup', onPinMainElementMouseup);
   pushPins();
   pinsListElement.addEventListener('click', onPinsElementClick);
-  formElement.addEventListener('submit' , onFormSubmit);
+  formElement.addEventListener('submit', onFormSubmit);
 };
 
 var onPinsElementClick = function (evt) {
