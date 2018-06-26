@@ -312,8 +312,11 @@ var onSuccessPressEsc = function (evt) {
     formElement.reset();
     mapElement.classList.add('map--faded');
     formElement.classList.add('ad-form--disabled');
-    for (var i = pinsListElement.children.length; i > 1; i--) {
-      pinsListElement.removeChild(pinsListElement.lastChild);
+    for (var i = pinsListElement.children.length - 1; i >= 0; i--) {
+      var currentElement = pinsListElement.children[i];
+      if (currentElement.classList.contains('map__pin') && !currentElement.classList.contains('map__pin--main')) {
+        pinsListElement.removeChild(currentElement);
+      }
     }
     pinMainElement.addEventListener('mouseup', onPinMainElementMouseup);
   }
