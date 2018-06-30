@@ -1,12 +1,16 @@
 'use strict';
 
-
 var PIN_WIDTH = 40;
 var PIN_HEIGHT = 40;
-var MAIN_PIN_WIDTH = 40;
-var MAIN_PIN_HEIGHT = 44;
-var POINTER_PIN_HEIGHT = 22;
+var MAIN_PIN_WIDTH = 62;
+var MAIN_PIN_HEIGHT = 84;
 var ESC_KEYCODE = 27;
+var COORDS_MAP = {
+  top: 162,
+  left: 0,
+  right: 1167,
+  bottom: 706
+};
 
 var titles = [
   'Большая уютная квартира',
@@ -183,7 +187,7 @@ deactivatePage();
 
 var setAddress = function () {
   inputAddressElement.value = (pinMainElement.offsetLeft + MAIN_PIN_WIDTH / 2)
-    + ', ' + (pinMainElement.offsetTop + POINTER_PIN_HEIGHT);
+    + ', ' + (pinMainElement.offsetTop + MAIN_PIN_HEIGHT);
 };
 
 var activatePage = function () {
@@ -192,12 +196,12 @@ var activatePage = function () {
   for (var i = 0; i < fieldsetElements.length; i++) {
     fieldsetElements[i].disabled = false;
   }
-  setAddress();
-  pinMainElement.removeEventListener('mouseup', onPinMainElementMouseup);
+
   pushPins();
   pinsListElement.addEventListener('click', onPinsElementClick);
   formElement.addEventListener('submit', onFormSubmit);
 };
+
 
 var onPinsElementClick = function (evt) {
   if (evt.target.dataset.index) {
@@ -214,7 +218,61 @@ var onPinMainElementMouseup = function () {
   activatePage();
 };
 
-pinMainElement.addEventListener('mouseup', onPinMainElementMouseup);
+
+pinMainElement.addEventListener('mousedown', function (evt) {
+  evt.preventDefault();
+  activatePage();
+  var startCoords = {
+    x: evt.clientX,
+    y: evt.clientY
+  };
+
+  var onMouseMove = function (moveEvt) {
+    evt.preventDefault();
+    var shift = {
+      x: startCoords.x - moveEvt.clientX,
+      y: startCoords.y - moveEvt.clientY
+    };
+
+    startCoords = {
+      x: moveEvt.clientX,
+      y: moveEvt.clientY
+    };
+
+    var limits = {
+      top: COORDS_MAP.top - MAIN_PIN_HEIGHT,
+      left: COORDS_MAP.left - MAIN_PIN_WIDTH / 2,
+      right: COORDS_MAP.right,
+      bottom: COORDS_MAP.bottom - MAIN_PIN_HEIGHT
+    };
+
+    pinMainElement.style.top = (pinMainElement.offsetTop - shift.y) + 'px';
+    pinMainElement.style.left = (pinMainElement.offsetLeft - shift.x) + 'px';
+    if (pinMainElement.offsetLeft <= limits.left) {
+      pinMainElement.style.left = (limits.left) + 'px';
+    } else if (pinMainElement.offsetTop <= limits.top) {
+      pinMainElement.style.top = (limits.top) + 'px';
+    } else if (pinMainElement.offsetLeft >= limits.right) {
+      pinMainElement.style.left = (limits.right) + 'px';
+    } else if (pinMainElement.offsetTop >= limits.bottom) {
+      pinMainElement.style.top = (limits.bottom) + 'px';
+    }
+
+    setAddress();
+  };
+
+  var onMouseUp = function (UpEvt) {
+    UpEvt.preventDefault();
+    setAddress();
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+  };
+
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+
+
+});
 
 
 var closePopup = function () {
@@ -318,6 +376,8 @@ var onSuccessPressEsc = function (evt) {
         pinsListElement.removeChild(currentElement);
       }
     }
+    pinMainElement.style.left = 570 + 'px';
+    pinMainElement.style.top = 375 + 'px';
     pinMainElement.addEventListener('mouseup', onPinMainElementMouseup);
   }
 };
