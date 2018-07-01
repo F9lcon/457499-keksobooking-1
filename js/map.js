@@ -8,15 +8,12 @@
   var ESC_KEYCODE = 27;
 
   var mapElement = document.querySelector('.map');
-  var templateElement = document.querySelector('template')
-    .content;
-  var filterContainerElement = document.querySelector('.map__filters-container');
+  var templateElement = document.querySelector('template').content;
+  var pinsListElement = document.querySelector('.map__pins');
   var fieldsetElements = document.querySelectorAll('fieldset');
   var inputAddressElement = document.querySelector('#address');
-  window.pinsListElement = document.querySelector('.map__pins'); /* сделал глобальной что бы не повторять в других модулях. или нужно полноценный экспорт делать с изменением названия модуля? */
   var formElement = document.querySelector('.ad-form');
   var pinMainElement = document.querySelector('.map__pin--main');
-
   var COORDS_MAP = {
     top: 162,
     left: 0,
@@ -24,14 +21,7 @@
     bottom: 706
   };
 
-  var typesNames = {
-    flat: 'Квартира',
-    bungalo: 'Бунгало',
-    house: 'Дом',
-    palace: 'Дворец'
-  };
-
-  window.isEscKeycode = function (evt) { /* с этим тоже не до конца понимаю. модуль map.js. но при этом отсюда есть экспорт функции. нужно ли менять название файла? */
+  window.isEscKeycode = function (evt) {
     return evt.keyCode === ESC_KEYCODE;
   };
 
@@ -51,56 +41,11 @@
     for (var i = 0; i < window.similarItems.length; i++) {
       fragment.appendChild(renderSimilarPins(window.similarItems[i], i));
     }
-    window.pinsListElement.appendChild(fragment);
+    pinsListElement.appendChild(fragment);
   };
 
-  var renderCard = function (item) {
-    var itemElement = templateElement.querySelector('.map__card').cloneNode(true);
-    var featuresListElement = itemElement.querySelector('.popup__features');
-    itemElement.querySelector('.popup__title').textContent = item.offer.title;
-    itemElement.querySelector('.popup__text--address').textContent = item.offer.address;
-    itemElement.querySelector('.popup__text--price').textContent = item.offer.price + ' ₽/ночь';
-    itemElement.querySelector('.popup__text--capacity').textContent = 'Заезд после '
-      + item.offer.checkin + ', выезд до ' + item.offer.checkout;
-    itemElement.querySelector('.popup__type').textContent = typesNames[item.offer.type];
-    itemElement.querySelector('.popup__description').textContent = item.offer.description;
-    itemElement.querySelector('.popup__photos').removeChild(itemElement
-      .querySelector('.popup__photo'));
 
-    for (var i = 0; i < 3; i++) {
-      var photoElement = document.createElement('img');
-      photoElement.src = item.offer.photos[i];
-      photoElement.classList.add('popup__photo');
-      photoElement.width = 45;
-      photoElement.height = 40;
-      photoElement.alt = 'Фотография жилья';
-      itemElement.querySelector('.popup__photos').insertBefore(photoElement, null);
-    }
-
-    while (featuresListElement.firstChild) {
-      featuresListElement.removeChild(featuresListElement.firstChild);
-    }
-
-    for (var j = 0; j < item.offer.features.length; j++) {
-      var featureElement = document.createElement('li');
-      featureElement.classList.add('popup__feature');
-      featureElement.classList.add('popup__feature--' + item.offer.features[j]);
-      featuresListElement.insertBefore(featureElement, null);
-    }
-    return itemElement;
-  };
-
-  var pushCard = function (item) {
-    var fragment = document.createDocumentFragment();
-    fragment.appendChild(renderCard(item));
-    if (mapElement.querySelector('.map__card')) {
-      mapElement.replaceChild(fragment, mapElement.querySelector('.map__card'));
-    } else {
-      mapElement.insertBefore(fragment, filterContainerElement);
-    }
-  };
-
-  window.deactivatePage = function () { /* перенес сюда часть из конца которая перегружает страницу что бы брать отсюда только функцию по деактивации страницы. и снова непонятки по поводу именования файла */
+  window.deactivatePage = function () {
     for (var i = 0; i < fieldsetElements.length; i++) {
       fieldsetElements[i].disabled = true;
     }
@@ -111,10 +56,11 @@
       + ', ' + (pinMainElement.offsetTop + MAIN_PIN_HEIGHT / 2);
     mapElement.classList.add('map--faded');
     formElement.classList.add('ad-form--disabled');
-    for (var j = window.pinsListElement.children.length - 1; j >= 0; j--) {
-      var currentElement = window.pinsListElement.children[j];
-      if (currentElement.classList.contains('map__pin') && !currentElement.classList.contains('map__pin--main')) {
-        window.pinsListElement.removeChild(currentElement);
+    for (var j = pinsListElement.children.length - 1; j >= 0; j--) {
+      var currentElement = pinsListElement.children[j];
+      if (currentElement.classList.contains('map__pin') && !currentElement
+        .classList.contains('map__pin--main')) {
+        pinsListElement.removeChild(currentElement);
       }
     }
     pinMainElement.addEventListener('mouseup', onPinMainElementMouseup);
@@ -135,17 +81,18 @@
     }
 
     pushPins();
-    window.pinsListElement.addEventListener('click', onPinsElementClick);
+    pinsListElement.addEventListener('click', onPinsElementClick);
     formElement.addEventListener('submit', window.onFormSubmit);
   };
 
   var onPinsElementClick = function (evt) {
     if (evt.target.dataset.index) {
       var currentIndex = evt.target.dataset.index;
-      pushCard(window.similarItems[currentIndex]);
+      window.pushCard(window.similarItems[currentIndex]);
     }
     if (document.querySelector('.popup__close')) {
-      document.querySelector('.popup__close').addEventListener('click', onCloseButtonClick);
+      document.querySelector('.popup__close')
+        .addEventListener('click', onCloseButtonClick);
       document.addEventListener('keydown', onCloseButtonPressEsc);
     }
   };
