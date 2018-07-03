@@ -83,7 +83,7 @@
 
   window.onFormSubmit = function (evt) {
     var formData = new FormData(formElement);
-    window.backEnd.upLoad(formData, onLoad, window.onError);
+    window.backend.upload(formData, onLoad, window.onError);
     evt.preventDefault();
 
   };
