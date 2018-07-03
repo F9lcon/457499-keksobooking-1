@@ -78,6 +78,4 @@
     return items;
   };
 
-  window.similarItems = getSimilarItems();
-
 })();

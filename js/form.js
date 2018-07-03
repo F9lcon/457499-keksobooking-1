@@ -1,6 +1,7 @@
 'use strict';
 
 (function () {
+  var formElement = document.querySelector('.ad-form');
   var successElement = document.querySelector('.success');
   var setMinimalPrice = function () {
     var inputTypeElement = document.querySelector('#type');
@@ -76,9 +77,15 @@
     document.addEventListener('keydown', onSuccessPressEsc);
   };
 
-  window.onFormSubmit = function (evt) {
-    evt.preventDefault();
+  var onLoad = function () {
     renderSuccess();
+  };
+
+  window.onFormSubmit = function (evt) {
+    var formData = new FormData(formElement);
+    window.backend.upload(formData, onLoad, window.onError);
+    evt.preventDefault();
+
   };
 
   var closeSuccessElement = function () {
