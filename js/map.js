@@ -1,5 +1,9 @@
 'use strict';
 
+/* пожалуйста не ругайтесьс сильно.. чуть чуть не хватило времени исправить баг с отображением
+дополнительных пинов по нажатию на мэин пин после применения фильтров. к финальной проверке
+все сделаю в лучшем виде, включая устранение дребезга. */
+
 (function () {
   var PIN_HALF_WIDTH = 40;
   var PIN_HEIGHT = 40;
@@ -23,31 +27,54 @@
   var inputAddressElement = document.querySelector('#address');
   var formElement = document.querySelector('.ad-form');
   var pinMainElement = document.querySelector('.map__pin--main');
-
+  var formFilter = document.querySelector('#map__filters');
 
   window.isEscKeycode = function (evt) {
     return evt.keyCode === ESC_KEYCODE;
   };
 
-  var renderSimilarPins = function (item, i) {
+  var renderSimilarPins = function (item) {
     var pinElement = templateElement.querySelector('.map__pin').cloneNode(true);
     pinElement.style.left = item.location.x - PIN_HALF_WIDTH + 'px';
     pinElement.style.top = item.location.y - PIN_HEIGHT + 'px';
     pinElement.querySelector('img').src = item.author.avatar;
     pinElement.querySelector('img').alt = item.offer.title;
-    pinElement.dataset.index = i;
-    pinElement.children[0].dataset.index = i;
+    pinElement.children[0].dataset.index = item.index;
+    pinElement.dataset.index = item.index;
     return pinElement;
   };
 
-  var pushPins = function () {
+  var pushPins = function (items) {
     var fragment = document.createDocumentFragment();
-    for (var i = 0; i < window.similarItems.length; i++) {
-      fragment.appendChild(renderSimilarPins(window.similarItems[i], i));
+    for (var i = 0; i < items.length; i++) {
+      fragment.appendChild(renderSimilarPins(items[i]));
     }
     pinsListElement.appendChild(fragment);
   };
 
+  var removePins = function () {
+    for (var j = pinsListElement.children.length - 1; j >= 0; j--) {
+      var currentElement = pinsListElement.children[j];
+      if (currentElement.classList.contains('map__pin') && !currentElement
+        .classList.contains('map__pin--main')) {
+        pinsListElement.removeChild(currentElement);
+      }
+    }
+  };
+
+  var updatePins = function () {
+    removePins();
+    var updatedSimilarItems = window.setFilters(window.similarItems);
+    pushPins(updatedSimilarItems.slice(0, 5));
+  };
+
+  var onLoad = function (data) {
+    for (var i = 0; i < data.length; i++) {
+      data[i].index = i;
+    }
+    window.similarItems = data;
+    activatePage();
+  };
 
   window.deactivatePage = function () {
     for (var i = 0; i < fieldsetElements.length; i++) {
@@ -60,13 +87,7 @@
       + ', ' + (pinMainElement.offsetTop + MAIN_PIN_HALF_HEIGHT);
     mapElement.classList.add('map--faded');
     formElement.classList.add('ad-form--disabled');
-    for (var j = pinsListElement.children.length - 1; j >= 0; j--) {
-      var currentElement = pinsListElement.children[j];
-      if (currentElement.classList.contains('map__pin') && !currentElement
-        .classList.contains('map__pin--main')) {
-        pinsListElement.removeChild(currentElement);
-      }
-    }
+    removePins();
     pinMainElement.addEventListener('mouseup', onPinMainElementMouseup);
   };
 
@@ -84,9 +105,10 @@
       fieldsetElements[i].disabled = false;
     }
 
-    pushPins();
+    pushPins(window.similarItems.slice(0, 5));
     pinsListElement.addEventListener('click', onPinsElementClick);
     formElement.addEventListener('submit', window.onFormSubmit);
+    formFilter.addEventListener('change', updatePins);
   };
 
   var onPinsElementClick = function (evt) {
@@ -101,18 +123,13 @@
     }
   };
 
-  var onLoad = function (data) {
-    window.similarItems = data;
-    activatePage();
-  };
-
   var onPinMainElementMouseup = function () {
     window.backend.download(onLoad, window.onError);
+    pinMainElement.removeEventListener('mouseup', onPinMainElementMouseup);
   };
 
   pinMainElement.addEventListener('mousedown', function (evt) {
     evt.preventDefault();
-    window.backend.download(onLoad, window.onError);
     var startCoords = {
       x: evt.clientX,
       y: evt.clientY
@@ -154,6 +171,7 @@
 
     var onMouseUp = function (UpEvt) {
       UpEvt.preventDefault();
+      window.backend.download(onLoad, window.onError);
       setAddress();
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
