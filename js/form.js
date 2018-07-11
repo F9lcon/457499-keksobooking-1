@@ -90,10 +90,10 @@
     document.removeEventListener('keydown', onSuccessPressEsc);
   };
 
-  var onSuccessClick = function(){
+  var onSuccessClick = function () {
     closeSuccessElement();
     window.deactivatePage();
-  }
+  };
 
   var onSuccessPressEsc = function (evt) {
     if (window.isEscKeycode(evt)) {

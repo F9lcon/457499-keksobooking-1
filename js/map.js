@@ -142,7 +142,7 @@
     var startPinCoords = {
       x: pinMainElement.offsetLeft,
       y: pinMainElement.offsetTop
-    }
+    };
 
     var onMouseMove = function (moveEvt) {
       evt.preventDefault();
