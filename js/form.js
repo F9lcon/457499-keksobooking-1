@@ -3,6 +3,7 @@
 (function () {
   var formElement = document.querySelector('.ad-form');
   var successElement = document.querySelector('.success');
+
   var setMinimalPrice = function () {
     var inputTypeElement = document.querySelector('#type');
     var inputPriceElement = document.querySelector('#price');
@@ -22,8 +23,6 @@
       }
     });
   };
-
-  setMinimalPrice();
 
   var setRoomNubmer = function () {
     var inputRoomNumberElement = document.querySelector('#room_number');
@@ -55,7 +54,6 @@
       }
     });
   };
-  setRoomNubmer();
 
   var setTimeInOut = function () {
     var timeInElement = document.querySelector('#timein');
@@ -70,8 +68,6 @@
     });
   };
 
-  setTimeInOut();
-
   var renderSuccess = function () {
     successElement.classList.remove('hidden');
     document.addEventListener('keydown', onSuccessPressEsc);
@@ -85,7 +81,6 @@
     var formData = new FormData(formElement);
     window.backend.upload(formData, onLoad, window.onError);
     evt.preventDefault();
-
   };
 
   var closeSuccessElement = function () {
@@ -99,5 +94,14 @@
       window.deactivatePage();
     }
   };
+
+  window.onResetClick = function () {
+    window.closePopup();
+    window.deactivatePage();
+  };
+
+  setMinimalPrice();
+  setRoomNubmer();
+  setTimeInOut();
 
 })();
