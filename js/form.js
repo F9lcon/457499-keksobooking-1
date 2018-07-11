@@ -70,6 +70,7 @@
 
   var renderSuccess = function () {
     successElement.classList.remove('hidden');
+    document.addEventListener('click', onSuccessClick);
     document.addEventListener('keydown', onSuccessPressEsc);
   };
 
@@ -85,8 +86,14 @@
 
   var closeSuccessElement = function () {
     successElement.classList.add('hidden');
+    document.removeEventListener('click', onSuccessClick);
     document.removeEventListener('keydown', onSuccessPressEsc);
   };
+
+  var onSuccessClick = function(){
+    closeSuccessElement();
+    window.deactivatePage();
+  }
 
   var onSuccessPressEsc = function (evt) {
     if (window.isEscKeycode(evt)) {

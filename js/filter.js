@@ -78,10 +78,10 @@
     };
 
     var currentData = cloneData
-       .filter(checkType)
+      .filter(checkType)
       .filter(checkPrice)
-       .filter(checkRooms)
-       .filter(checkGuests)
+      .filter(checkRooms)
+      .filter(checkGuests)
       .filter(filterFeatures);
     return currentData;
   };

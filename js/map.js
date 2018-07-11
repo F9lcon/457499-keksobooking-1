@@ -61,12 +61,12 @@
     }
   };
 
-  var onFilterChange = function () {
+  var onFilterChange = window.debounce(function () {
     window.closePopup();
     removePins();
     var updatedSimilarItems = window.setFilters(window.similarItems);
     pushPins(updatedSimilarItems.slice(0, 5));
-  };
+  });
 
   var onLoad = function (data) {
     for (var i = 0; i < data.length; i++) {
@@ -135,35 +135,30 @@
 
   pinMainElement.addEventListener('mousedown', function (evt) {
     evt.preventDefault();
-    var startCoords = {
+    var startClickCoords = {
       x: evt.clientX,
       y: evt.clientY
     };
+    var startPinCoords = {
+      x: pinMainElement.offsetLeft,
+      y: pinMainElement.offsetTop
+    }
 
     var onMouseMove = function (moveEvt) {
       evt.preventDefault();
       var shift = {
-        x: startCoords.x - moveEvt.clientX,
-        y: startCoords.y - moveEvt.clientY
+        x: startClickCoords.x - moveEvt.clientX,
+        y: startClickCoords.y - moveEvt.clientY
       };
 
-      startCoords = {
-        x: moveEvt.clientX,
-        y: moveEvt.clientY
+      var newCoords = {
+        x: startPinCoords.x - shift.x,
+        y: startPinCoords.y - shift.y
       };
-
-      pinMainElement.style.top = (pinMainElement.offsetTop - shift.y) + 'px';
-      pinMainElement.style.left = (pinMainElement.offsetLeft - shift.x) + 'px';
-      if (pinMainElement.offsetLeft <= Limit.LEFT) {
-        pinMainElement.style.left = (Limit.LEFT) + 'px';
-      } else if (pinMainElement.offsetTop <= Limit.TOP) {
-        pinMainElement.style.top = (Limit.TOP) + 'px';
-      } else if (pinMainElement.offsetLeft >= Limit.RIGHT) {
-        pinMainElement.style.left = (Limit.RIGHT) + 'px';
-      } else if (pinMainElement.offsetTop >= Limit.BOTTOM) {
-        pinMainElement.style.top = (Limit.BOTTOM) + 'px';
-      }
-
+      newCoords.x = Math.min(Limit.RIGHT, Math.max(Limit.LEFT, newCoords.x));
+      newCoords.y = Math.min(Limit.BOTTOM, Math.max(Limit.TOP, newCoords.y));
+      pinMainElement.style.top = newCoords.y + 'px';
+      pinMainElement.style.left = newCoords.x + 'px';
       setAddress();
     };
 
