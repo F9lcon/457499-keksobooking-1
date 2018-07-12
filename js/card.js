@@ -1,31 +1,35 @@
 'use strict';
 
 (function () {
-  var filterContainerElement = document.querySelector('.map__filters-container');
-  var mapElement = document.querySelector('.map');
-  var templateElement = document.querySelector('template').content;
 
-  var typesNames = {
+  var typeName = {
     flat: 'Квартира',
     bungalo: 'Бунгало',
     house: 'Дом',
     palace: 'Дворец'
   };
 
+  var filterContainerElement = document.querySelector('.map__filters-container');
+  var mapElement = document.querySelector('.map');
+  var templateElement = document.querySelector('template').content;
+
   var renderCard = function (item) {
     var itemElement = templateElement.querySelector('.map__card').cloneNode(true);
     var featuresListElement = itemElement.querySelector('.popup__features');
+    itemElement.querySelector('.popup__avatar').src = item.author.avatar;
     itemElement.querySelector('.popup__title').textContent = item.offer.title;
     itemElement.querySelector('.popup__text--address').textContent = item.offer.address;
     itemElement.querySelector('.popup__text--price').textContent = item.offer.price + ' ₽/ночь';
-    itemElement.querySelector('.popup__text--capacity').textContent = 'Заезд после '
+    itemElement.querySelector('.popup__text--time').textContent = 'Заезд после '
       + item.offer.checkin + ', выезд до ' + item.offer.checkout;
-    itemElement.querySelector('.popup__type').textContent = typesNames[item.offer.type];
+    itemElement.querySelector('.popup__text--capacity').textContent = item.offer.rooms
+      + ' комнат для ' + item.offer.guests + ' гостей';
+    itemElement.querySelector('.popup__type').textContent = typeName[item.offer.type];
     itemElement.querySelector('.popup__description').textContent = item.offer.description;
     itemElement.querySelector('.popup__photos').removeChild(itemElement
       .querySelector('.popup__photo'));
 
-    for (var i = 0; i < 3; i++) {
+    for (var i = 0; i < item.offer.photos.length; i++) {
       var photoElement = document.createElement('img');
       photoElement.src = item.offer.photos[i];
       photoElement.classList.add('popup__photo');
@@ -35,9 +39,7 @@
       itemElement.querySelector('.popup__photos').insertBefore(photoElement, null);
     }
 
-    while (featuresListElement.firstChild) {
-      featuresListElement.removeChild(featuresListElement.firstChild);
-    }
+    featuresListElement.innerText = '';
 
     for (var j = 0; j < item.offer.features.length; j++) {
       var featureElement = document.createElement('li');

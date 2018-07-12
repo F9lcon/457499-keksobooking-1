@@ -3,6 +3,7 @@
 (function () {
   var formElement = document.querySelector('.ad-form');
   var successElement = document.querySelector('.success');
+
   var setMinimalPrice = function () {
     var inputTypeElement = document.querySelector('#type');
     var inputPriceElement = document.querySelector('#price');
@@ -23,8 +24,6 @@
     });
   };
 
-  setMinimalPrice();
-
   var setRoomNubmer = function () {
     var inputRoomNumberElement = document.querySelector('#room_number');
     var capacityElement = document.querySelector('#capacity');
@@ -33,6 +32,7 @@
         capacityElement[0].disabled = true;
         capacityElement[1].disabled = true;
         capacityElement[2].selected = true;
+        capacityElement[2].disabled = false;
         capacityElement[3].disabled = true;
       } else if (inputRoomNumberElement.value === '2') {
         capacityElement[0].disabled = true;
@@ -55,7 +55,6 @@
       }
     });
   };
-  setRoomNubmer();
 
   var setTimeInOut = function () {
     var timeInElement = document.querySelector('#timein');
@@ -70,10 +69,9 @@
     });
   };
 
-  setTimeInOut();
-
   var renderSuccess = function () {
     successElement.classList.remove('hidden');
+    document.addEventListener('click', onSuccessClick);
     document.addEventListener('keydown', onSuccessPressEsc);
   };
 
@@ -85,12 +83,18 @@
     var formData = new FormData(formElement);
     window.backend.upload(formData, onLoad, window.onError);
     evt.preventDefault();
-
   };
 
   var closeSuccessElement = function () {
     successElement.classList.add('hidden');
+    document.removeEventListener('click', onSuccessClick);
     document.removeEventListener('keydown', onSuccessPressEsc);
+  };
+
+  var onSuccessClick = function () {
+    closeSuccessElement();
+    window.deactivatePage();
+    window.closePopup();
   };
 
   var onSuccessPressEsc = function (evt) {
@@ -100,4 +104,12 @@
     }
   };
 
+  window.onResetClick = function () {
+    window.closePopup();
+    window.deactivatePage();
+  };
+
+  setMinimalPrice();
+  setRoomNubmer();
+  setTimeInOut();
 })();
