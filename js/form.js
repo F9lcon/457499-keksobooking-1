@@ -93,6 +93,7 @@
   var onSuccessClick = function () {
     closeSuccessElement();
     window.deactivatePage();
+    window.closePopup();
   };
 
   var onSuccessPressEsc = function (evt) {
